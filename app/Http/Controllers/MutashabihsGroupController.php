@@ -11,7 +11,11 @@ class MutashabihsGroupController extends Controller
     public function get ($id=null){
 
         if ($id){
-            return MutashabihsGroup::find($id)->toJson(JSON_PRETTY_PRINT);
+            $group = MutashabihsGroup::find($id);
+            if (!$group) return response()->json([
+                'message' => 'This Group of Mutashabih don\'t exist',
+                ],404);
+            return $group->toJson(JSON_PRETTY_PRINT);
         }
         return MutashabihsGroup::all()->toJson(JSON_PRETTY_PRINT);
     }
@@ -43,8 +47,6 @@ class MutashabihsGroupController extends Controller
         $group->delete();
         return response()->json([
                 'message' => 'Deleted with success',
-            ],200);
-   
-    }
-
+                ],200);
+     }
 }
