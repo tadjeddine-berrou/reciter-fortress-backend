@@ -16,8 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('mutashabih_id');
             $table->unsignedBigInteger('word_id');
 
-            $table->foreign("mutashabih_id")->references("id")->on("mutashabihs");
-            $table->foreign("word_id")->references("id")->on("words");
+            $table->foreign("mutashabih_id")->references("id")->on("mutashabihs")->onDelete('cascade');
+            $table->foreign("word_id")->references("id")->on("words")->onDelete('cascade');
             $table->timestamps();
         });
     }
