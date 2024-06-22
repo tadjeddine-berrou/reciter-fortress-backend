@@ -1,0 +1,5 @@
+SQLSTATE[22P02]: Invalid text representation: 7 ERROR:  invalid input syntax for type integer: "8.7"nCONTEXT:  unnamed portal parameter $14 = '...' (Connection: pgsql,
+
+SQL:
+
+insert into "words" ("chapter_id", "char_type_name", "code_v1", "page_number", "line_number", "location", "position", "offset_right_percent", "verse_id", "verse_number", "text", "text_uthmani", "word_id", "width_percent", "updated_at", "created_at") values (7, end, ufb82, 171, 6, 7:160:44, 44, 84, 1114, 160, u0661u0666u0660, u0661u0666u0660, 81847, 8.7, 2024-06-22 16:10:47, 2024-06-22 16:10:47);

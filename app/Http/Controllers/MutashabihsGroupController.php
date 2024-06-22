@@ -9,63 +9,41 @@ use App\Models\MutashabihsGroup;
 
 class MutashabihsGroupController extends Controller
 {
-    public function get ($id=null){
-
-        if ($id){
-            $group = MutashabihsGroup::find($id);
-            if (!$group) return response()->json([
-                'message' => 'This Group of Mutashabih don\'t exist',
-                ],404);
-            return $group->toJson(JSON_PRETTY_PRINT);
-        }
-        return MutashabihsGroup::all()->each(function($group) {
-          $group->mutashabihCount = Mutashabih::where('group_id', $group->id)->count();
-        })->toJson(JSON_PRETTY_PRINT);
+    public function list()
+    {
+        return response()->json(
+            MutashabihsGroup::withCount('mutashabih')->get()
+        );
     }
 
-    public function create (Request $request){
+    public function get(MutashabihsGroup $group){
+        return response()->json($group);
+    }
 
-        $validator = Validator::make($request->all(), [
+    public function create(Request $request){
+
+        $validated = $request->validate([
             'name' => 'required|string|unique:mutashabihs_groups',
         ]);
 
-        if($validator->fails()){
-            return response()->json([
-                'message' => [$validator->errors()->first('name')],
-            ],404);
-        }
-
-        $group= MutashabihsGroup::create($request->all());
-
-        return $group->toJson(JSON_PRETTY_PRINT,200);
-
+        $group= MutashabihsGroup::query()->create($validated);
+        return response()->json($group,200);
     }
 
-    public function update ($id, Request $request){
-        $group = MutashabihsGroup::find($id);
-        if (!$group) {
-            return response()->json([
-                'message' => 'This group don\'t exist',
-            ],404);
-        }
-        $validator = Validator::make($request->all(), [
+    public function update (MutashabihsGroup $group, Request $request){
+
+        $validated = $request->validate([
             'name' => 'required|string|unique:mutashabihs_groups',
         ]);
-        $group->update($request->all());
 
-        return $group->toJson(JSON_PRETTY_PRINT,200);
+        $group->update($validated);
+        return response()->json($group,200);
     }
 
-    public function delete ($id){
-
-        $group = MutashabihsGroup::find($id);
-        if (!$group)  return response()->json([
-                'message' => 'This group don\'t exist',
-                 ],404);
-
+    public function delete (MutashabihsGroup $group){
         $group->delete();
         return response()->json([
-                'message' => 'Deleted with success',
-                ],200);
+            'message' => 'Deleted with success',
+        ],200);
      }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\MutashabihsGroup;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Mutashabih;
@@ -10,25 +11,18 @@ use App\Models\Word;
 
 class MutashabihController extends Controller
 {
-    public function create (Request $request)
+    public function create (MutashabihsGroup $group, Request $request)
     {
         //Validate the Request
 
-        $validator_mutashabih = Validator::make($request->all(), [
+        $validated = $request->validate([
             'chapter_id' => 'required|integer',
             'chapter_name'=> 'required|string|max:100',
             'code_v1'=> 'required|string|max:100',
-            'group_id' => 'required|integer|exists:mutashabihs_groups,id',
             'order'  => 'required|integer',
             'text_imlaei_simple'  => 'required|string',
             'text_uthmani' => 'required|string',
-         ]);
-         $validator_verses=[];
-
-        foreach($request->input('verses') as $verse)
-        {
-            //dd($verse);
-            $validator_verses[] = Validator::make($verse, [
+            'verses.*' => [
                 'chapter_id' => 'required|integer',
                 'hizb_number' => 'required|integer',
                 'juz_number' => 'required|integer',
@@ -38,14 +32,8 @@ class MutashabihController extends Controller
                 'verse_number' => 'required|integer',
                 'text_imlaei_simple' => 'required|string',
                 'text_uthmani' => 'required|string',
-            ]);
-        }
-
-        $validator_words=[];
-
-        foreach($request->input('words') as $word)
-        {
-            $validator_words[] = Validator::make($word, [
+            ],
+            'words.*' => [
                 'chapter_id' => 'required|integer',
                 'char_type_name' => 'required|string',
                 'code_v1' => 'required|string|max:20',
@@ -60,92 +48,52 @@ class MutashabihController extends Controller
                 'text_uthmani' => 'required|string',
                 'word_id' => 'required|integer',
                 'width_percent' => 'required|numeric',
-            ]);
-        }
-
-        // check validator errors of mutashabih pyload
-        if($validator_mutashabih->fails())
-            return  response()->json([
-              'Mutashabihs Table Error' => [$validator_mutashabih->errors()->first()],
-             ],404);
-
-        // check validator errors of Verses pyload
-        foreach($validator_verses as $validator_verse){
-            if($validator_verse->fails())
-                return  response()->json([
-                  'Verses Table Error' => [$validator_verse->errors()->first()],
-                 ],404);
-        }
-
-        // check validator errors of Words pyload
-        foreach($validator_words as $validator_word){
-            if($validator_word->fails())
-                return  response()->json([
-                  'Words Table Error' => [$validator_word->errors()->first()],
-                 ],404);
-        }
+            ],
+        ]);
 
         // create the mutashabih
-        $mutashabih= Mutashabih::create($request->all());
+        /**
+         * @var $mutashabih Mutashabih
+         */
+        $mutashabih=  $group->mutashabih()->create([
+            'chapter_id' => $validated['chapter_id'],
+            'chapter_name'=> $validated['chapter_name'],
+            'code_v1'=> $validated['code_v1'],
+            'order'  => $validated['order'],
+            'text_imlaei_simple'  => $validated['text_imlaei_simple'],
+            'text_uthmani' => $validated['text_uthmani'],
+        ]);
 
         // create the verses if they not exists before
-        $verses=[];
-        foreach($request->input('verses') as $verse_req){
-            $verse_check= Verse::where('verse_id', $verse_req['verse_id'])->first();
-            if(!$verse_check) {
-                $verse = Verse::create($verse_req);
-                array_push($verses, $verse);
-                $mutashabih->verses()->attach($verse->id);
-            }
-            else {
-               $mutashabih_verse_exists=$mutashabih->verses()->wherePivot('verse_id', $verse_check->id)->exists();
-               if(!$mutashabih_verse_exists) $mutashabih->verses()->attach($verse_check->id);
-            }
+        $verses= collect($validated['verses'])->map(fn($verseData) => Verse::query()->firstOrCreate([ 'verse_id' => $verseData['verse_id'], ], $verseData));
+        $mutashabih->verses()->sync($verses->pluck('verse_id'));
 
-        }
-
-        // create the words if they not exists before
-        $words=[];
-        foreach($request->input('words') as $word_req){
-            $word_check= Word::where('word_id', $word_req['word_id'])->first();
-            if(!$word_check) {
-                $_word = Word::create($word_req);
-                $words[] = $_word;
-                $mutashabih->words()->attach($_word->id);
-            }
-            else{
-               $mutashabih_word_exists=$mutashabih->words()->wherePivot('word_id', $word_check->id)->exists();
-               if(!$mutashabih_word_exists) $mutashabih->words()->attach($word_check->id);
-            }
-        }
+        $words= collect($validated['words'])->map(fn($wordData) => Word::query()->firstOrCreate([ 'word_id' => $wordData['word_id'], ], $wordData));
+        $mutashabih->words()->sync($words->pluck('words'));
 
         return $mutashabih->toJson(JSON_PRETTY_PRINT,200);
     }
 
-    public function get($id_group,$id=null)
+    public function get(Mutashabih $mutashabih)
     {
-        if ($id){
-            $mutashabih=Mutashabih::find($id);
+        $mutashabih->load(['verses', 'words']);
+        return response()->json([
+            'data' => $mutashabih,
+        ]);
+    }
 
-            //check if the mutashabih exist
-            if (!$mutashabih) return response()->json([
-                'message' => 'This Mutashabih don\'t exist',
-                ],404);
-
-            $verses=$mutashabih->verses()->get();
-            $words=$mutashabih->words()->get();
-
-            return response()->json(['Mutashabih' => $mutashabih,"Verses" => $verses, "Words" => $words]);
-        }
-
-        $mutashabihs = Mutashabih::all()->where("group_id",$id_group);
+    public function getAll(MutashabihsGroup $group)
+    {
+        $mutashabihs = $group->mutashabih()->get();
 
         $response = [];
         foreach($mutashabihs as $mutashabih){
-            $verses = $mutashabih->verses()->get();
-            $words=$mutashabih->words()->get();
+            $mutashabihs->load(['verses', 'words']);
 
-            $response[] = [...$mutashabih->toArray(), "verses" => $verses, "words" => $words];
+            //$verses = $mutashabih->verses()->get();
+            //$words=$mutashabih->words()->get();
+
+            $response[] = $mutashabih;
         }
         return response()->json($response);
     }

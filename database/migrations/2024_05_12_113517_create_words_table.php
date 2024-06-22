@@ -18,13 +18,13 @@ return new class extends Migration
             $table->string('code_v1');
             $table->integer('line_number');
             $table->string('location');
-            $table->integer('offset_right_percent');
+            $table->decimal('offset_right_percent');
             $table->integer('position');
             $table->string('text');
             $table->string('text_uthmani');
             $table->integer('verse_id');
             $table->integer('verse_number');
-            $table->integer('width_percent');
+            $table->decimal('width_percent');
             $table->integer('word_id');
             $table->timestamps();
         });

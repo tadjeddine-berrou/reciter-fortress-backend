@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MutashabihsGroup extends Model
 {
@@ -11,4 +12,9 @@ class MutashabihsGroup extends Model
     protected $fillable = [
         'name',
     ];
+
+    public function mutashabih(): HasMany
+    {
+        return $this->hasMany(Mutashabih::class, 'group_id');
+    }
 }
