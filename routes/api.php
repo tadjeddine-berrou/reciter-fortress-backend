@@ -14,17 +14,16 @@ Route::get('/user', function (Request $request) {
 
 
 Route::middleware('auth:sanctum')->group( function () {
-    
-    Route::get('mutashabihs_groups', [MutashabihsGroupController::class,'get']);
-    Route::get('mutashabihs_groups/{id}', [MutashabihsGroupController::class,'get']);
-    Route::post('mutashabihs_groups', [MutashabihsGroupController::class,'create']);
-    Route::DELETE('mutashabihs_groups/{id}', [MutashabihsGroupController::class,'delete']);
-    
-    Route::get('mutashabihs_groups/{group_id}/mutashabih', [MutashabihController::class,'get']);
-    Route::get('mutashabihs_groups/{group_id}/mutashabih/{id}', [MutashabihController::class,'get']);
-    Route::post('mutashabihs_groups/{id}/mutashabih',[MutashabihController::class,'create']);
-    Route::DELETE('mutashabihs_groups/{group_id}/mutashabih/{id}', [MutashabihController::class,'delete']);
-   
+    Route::get('mutashabih-groups', [MutashabihsGroupController::class,'get']);
+    Route::get('mutashabih-groups/{id}', [MutashabihsGroupController::class,'get']);
+    Route::post('mutashabih-groups', [MutashabihsGroupController::class,'create']);
+    Route::put('mutashabih-groups/{id}', [MutashabihsGroupController::class,'update']);
+    Route::DELETE('mutashabih-groups/{id}', [MutashabihsGroupController::class,'delete']);
+
+    Route::get('mutashabih-groups/{group_id}/mutashabih', [MutashabihController::class,'get']);
+    Route::get('mutashabih-groups/{group_id}/mutashabih/{id}', [MutashabihController::class,'get']);
+    Route::post('mutashabih-groups/{id}/mutashabih',[MutashabihController::class,'create']);
+    Route::DELETE('mutashabih-groups/{group_id}/mutashabih/{id}', [MutashabihController::class,'delete']);
 });
 
 
