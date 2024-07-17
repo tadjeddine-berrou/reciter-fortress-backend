@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ShortlinkController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -25,6 +26,9 @@ Route::middleware('auth:sanctum')->group( function () {
     Route::post('mutashabih-groups/{group}/mutashabih',[MutashabihController::class,'create']);
     Route::DELETE('mutashabih-groups/{group_id}/mutashabih/{id}', [MutashabihController::class,'delete']);
 });
+
+Route::get('/fetch-long-url/{shortlink}', [ShortlinkController::class, 'fetchLongUrl']);
+
 
 
 
