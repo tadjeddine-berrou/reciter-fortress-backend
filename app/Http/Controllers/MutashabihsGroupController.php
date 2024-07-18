@@ -17,6 +17,7 @@ class MutashabihsGroupController extends Controller
     }
 
     public function get(MutashabihsGroup $group){
+        $group->loadCount('mutashabih');
         return response()->json($group);
     }
 
